@@ -20,6 +20,9 @@ pmwcas::PMDKAllocator *Allocator::allocator_ = nullptr;
 uint64_t global_epoch = 0;
 
 void InternalNode::New(bztree::InternalNode **mem, uint32_t alloc_size) {
+  std::cerr << "CALL:InternalNode::New(bztree::InternalNode **mem, uint32_t "
+               "alloc_size)"
+            << std::endl;
 #ifdef PMDK
   Allocator::Get()->AllocateDirect(reinterpret_cast<void **>(mem), alloc_size);
   memset(*mem, 0, alloc_size);
@@ -31,6 +34,9 @@ void InternalNode::New(bztree::InternalNode **mem, uint32_t alloc_size) {
   memset(*mem, 0, alloc_size);
   (*mem)->header.size = alloc_size;
 #endif  // PMDK
+  std::cerr << " END:InternalNode::New(bztree::InternalNode **mem, uint32_t "
+               "alloc_size)"
+            << std::endl;
 }
 
 // Create an internal node with a new key and associated child pointers inserted
@@ -38,6 +44,10 @@ void InternalNode::New(bztree::InternalNode **mem, uint32_t alloc_size) {
 void InternalNode::New(InternalNode *src_node, const char *key,
                        uint32_t key_size, uint64_t left_child_addr,
                        uint64_t right_child_addr, InternalNode **mem) {
+  std::cerr << "CALL:InternalNode::New(InternalNode *src_node, const char *key,
+                       uint32_t key_size, uint64_t left_child_addr,
+                       uint64_t right_child_addr, InternalNode **mem)"
+            << std::endl;
   uint32_t alloc_size = src_node->GetHeader()->size +
                         RecordMetadata::PadKeyLength(key_size) +
                         sizeof(right_child_addr) + sizeof(RecordMetadata);
@@ -61,12 +71,20 @@ void InternalNode::New(InternalNode *src_node, const char *key,
   pmwcas::NVRAM::Flush(alloc_size, *mem);
 #endif  // PMEM
 #endif  // PMDK
+  std::cerr << " END:InternalNode::New(InternalNode *src_node, const char *key,
+                       uint32_t key_size, uint64_t left_child_addr,
+                       uint64_t right_child_addr, InternalNode **mem)"
+            << std::endl;
 }
 
 // Create an internal node with a single separator key and two pointers
 void InternalNode::New(const char *key, uint32_t key_size,
                        uint64_t left_child_addr, uint64_t right_child_addr,
                        InternalNode **mem) {
+  std::cerr << "CALL:InternalNode::New(const char *key, uint32_t key_size,
+                       uint64_t left_child_addr, uint64_t right_child_addr,
+                       InternalNode **mem)"
+            << std::endl;
   uint32_t alloc_size = sizeof(InternalNode) +
                         RecordMetadata::PadKeyLength(key_size) +
                         sizeof(left_child_addr) + sizeof(right_child_addr) +
@@ -88,6 +106,10 @@ void InternalNode::New(const char *key, uint32_t key_size,
   pmwcas::NVRAM::Flush(alloc_size, *mem);
 #endif  // PMEM
 #endif  // PMDK
+  std::cerr << " END:InternalNode::New(const char *key, uint32_t key_size,
+                       uint64_t left_child_addr, uint64_t right_child_addr,
+                       InternalNode **mem)"
+            << std::endl;
 }
 
 // Create an internal node with keys and pointers in the provided range from an
@@ -96,6 +118,11 @@ void InternalNode::New(InternalNode *src_node, uint32_t begin_meta_idx,
                        uint32_t nr_records, const char *key, uint32_t key_size,
                        uint64_t left_child_addr, uint64_t right_child_addr,
                        InternalNode **new_node, uint64_t left_most_child_addr) {
+  std::cerr << "CALL:InternalNode::New(InternalNode *src_node, uint32_t begin_meta_idx,
+                       uint32_t nr_records, const char *key, uint32_t key_size,
+                       uint64_t left_child_addr, uint64_t right_child_addr,
+                       InternalNode **new_node, uint64_t left_most_child_addr)"
+            << std::endl;
   // Figure out how large the new node will be
   uint32_t alloc_size = sizeof(InternalNode);
   if (begin_meta_idx > 0) {
@@ -138,12 +165,22 @@ void InternalNode::New(InternalNode *src_node, uint32_t begin_meta_idx,
   pmwcas::NVRAM::Flush(alloc_size, *new_node);
 #endif  // PMEM
 #endif  // PMDK
+  std::cerr << " END:InternalNode::New(InternalNode *src_node, uint32_t begin_meta_idx,
+                       uint32_t nr_records, const char *key, uint32_t key_size,
+                       uint64_t left_child_addr, uint64_t right_child_addr,
+                       InternalNode **new_node, uint64_t left_most_child_addr)"
+            << std::endl;
 }
 
 InternalNode::InternalNode(uint32_t node_size, const char *key,
                            const uint16_t key_size, uint64_t left_child_addr,
                            uint64_t right_child_addr)
     : BaseNode(false, node_size) {
+  std::cerr << "CALL:InternalNode::InternalNode(uint32_t node_size, const char *key,
+                           const uint16_t key_size, uint64_t left_child_addr,
+                           uint64_t right_child_addr)
+    : BaseNode(false, node_size)"
+            << std::endl;
   // Initialize a new internal node with one key only
   header.sorted_count = 2;  // Includes the null dummy key
   header.size = node_size;
@@ -165,6 +202,11 @@ InternalNode::InternalNode(uint32_t node_size, const char *key,
 
   assert((uint64_t)ptr ==
          (uint64_t)this + sizeof(*this) + 2 * sizeof(RecordMetadata));
+  std::cerr << " END:InternalNode::InternalNode(uint32_t node_size, const char *key,
+                           const uint16_t key_size, uint64_t left_child_addr,
+                           uint64_t right_child_addr)
+    : BaseNode(false, node_size)"
+            << std::endl;
 }
 
 InternalNode::InternalNode(uint32_t node_size, InternalNode *src_node,
@@ -173,6 +215,13 @@ InternalNode::InternalNode(uint32_t node_size, InternalNode *src_node,
                            uint64_t left_child_addr, uint64_t right_child_addr,
                            uint64_t left_most_child_addr)
     : BaseNode(false, node_size) {
+  std::cerr << "CALL:InternalNode::InternalNode(uint32_t node_size, InternalNode *src_node,
+                           uint32_t begin_meta_idx, uint32_t nr_records,
+                           const char *key, const uint16_t key_size,
+                           uint64_t left_child_addr, uint64_t right_child_addr,
+                           uint64_t left_most_child_addr)
+    : BaseNode(false, node_size)"
+            << std::endl;
   ALWAYS_ASSERT(src_node);
   __builtin_prefetch((const void *)(src_node), 0, 3);
   auto padded_key_size = RecordMetadata::PadKeyLength(key_size);
@@ -277,6 +326,13 @@ InternalNode::InternalNode(uint32_t node_size, InternalNode *src_node,
 
   header.size = node_size;
   header.sorted_count = insert_idx;
+  std::cerr << " END:InternalNode::InternalNode(uint32_t node_size, InternalNode *src_node,
+                           uint32_t begin_meta_idx, uint32_t nr_records,
+                           const char *key, const uint16_t key_size,
+                           uint64_t left_child_addr, uint64_t right_child_addr,
+                           uint64_t left_most_child_addr)
+    : BaseNode(false, node_size)"
+            << std::endl;
 }
 
 // Insert record to this internal node. The node is frozen at this time.
@@ -286,6 +342,13 @@ bool InternalNode::PrepareForSplit(
     uint64_t right_child_addr,  // [key]'s right child pointer
     InternalNode **new_node, pmwcas::Descriptor *pd,
     pmwcas::DescriptorPool *pool, bool backoff) {
+  std::cerr << "CALL:InternalNode::PrepareForSplit(
+    Stack &stack, uint32_t split_threshold, const char *key, uint32_t key_size,
+    uint64_t left_child_addr,   // [key]'s left child pointer
+    uint64_t right_child_addr,  // [key]'s right child pointer
+    InternalNode **new_node, pmwcas::Descriptor *pd,
+    pmwcas::DescriptorPool *pool, bool backoff)"
+            << std::endl;
   uint32_t data_size = header.size + key_size + sizeof(right_child_addr) +
                        sizeof(RecordMetadata);
   uint32_t new_node_size = sizeof(InternalNode) + data_size;
@@ -375,9 +438,18 @@ bool InternalNode::PrepareForSplit(
   return parent->PrepareForSplit(stack, split_threshold, separator_key,
                                  separator_key_size, (uint64_t)*ptr_l,
                                  (uint64_t)*ptr_r, new_node, pd, pool, backoff);
+  std::cerr << " END:InternalNode::PrepareForSplit(
+    Stack &stack, uint32_t split_threshold, const char *key, uint32_t key_size,
+    uint64_t left_child_addr,   // [key]'s left child pointer
+    uint64_t right_child_addr,  // [key]'s right child pointer
+    InternalNode **new_node, pmwcas::Descriptor *pd,
+    pmwcas::DescriptorPool *pool, bool backoff)"
+            << std::endl;
 }
 
 void LeafNode::New(LeafNode **mem, uint32_t node_size) {
+  std::cerr << "CALL:LeafNode::New(LeafNode **mem, uint32_t node_size)"
+            << std::endl;
 #ifdef PMDK
   Allocator::Get()->AllocateDirect(reinterpret_cast<void **>(mem), node_size);
   memset(*mem, 0, node_size);
@@ -392,9 +464,12 @@ void LeafNode::New(LeafNode **mem, uint32_t node_size) {
   pmwcas::NVRAM::Flush(node_size, *mem);
 #endif  // PMEM
 #endif  // PMDK
+  std::cerr << " END:LeafNode::New(LeafNode **mem, uint32_t node_size)"
+            << std::endl;
 }
 
 void BaseNode::Dump(pmwcas::EpochManager *epoch) {
+  std::cerr << "CALL:BaseNode::Dump(pmwcas::EpochManager *epoch)" << std::endl;
   std::cout << "-----------------------------" << std::endl;
   std::cout << " Dumping node: " << this
             << (is_leaf ? " (leaf)" : " (internal)") << std::endl;
@@ -430,9 +505,11 @@ void BaseNode::Dump(pmwcas::EpochManager *epoch) {
               << ", key length = " << meta.GetKeyLength()
               << ", total length = " << meta.GetTotalLength() << std::endl;
   }
+  std::cerr << " END:BaseNode::Dump(pmwcas::EpochManager *epoch)" << std::endl;
 }
 
 void LeafNode::Dump(pmwcas::EpochManager *epoch) {
+  std::cerr << "CALL:LeafNode::Dump(pmwcas::EpochManager *epoch)" << std::endl;
   BaseNode::Dump(epoch);
   std::cout << " Key-Payload Pairs:" << std::endl;
   for (uint32_t i = 0; i < header.status.GetRecordCount(); ++i) {
@@ -449,9 +526,13 @@ void LeafNode::Dump(pmwcas::EpochManager *epoch) {
   }
 
   std::cout << "-----------------------------" << std::endl;
+  std::cerr << " END:LeafNode::Dump(pmwcas::EpochManager *epoch)" << std::endl;
 }
 
 void InternalNode::Dump(pmwcas::EpochManager *epoch, bool dump_children) {
+  std::cerr << "CALL:InternalNode::Dump(pmwcas::EpochManager *epoch, bool "
+               "dump_children)"
+            << std::endl;
   BaseNode::Dump(epoch);
   std::cout << " Child pointers and separator keys:" << std::endl;
   assert(header.status.GetRecordCount() == 0);
@@ -486,12 +567,20 @@ void InternalNode::Dump(pmwcas::EpochManager *epoch, bool dump_children) {
       }
     }
   }
+  std::cerr << " END:InternalNode::Dump(pmwcas::EpochManager *epoch, bool "
+               "dump_children)"
+            << std::endl;
 }
 
 ReturnCode LeafNode::Insert(const char *key, uint16_t key_size,
                             uint64_t payload,
                             pmwcas::DescriptorPool *pmwcas_pool,
                             uint32_t split_threshold) {
+  std::cerr << "CALL:LeafNode::Insert(const char *key, uint16_t key_size,
+                            uint64_t payload,
+                            pmwcas::DescriptorPool *pmwcas_pool,
+                            uint32_t split_threshold)"
+            << std::endl;
 retry:
   NodeHeader::StatusWord expected_status = header.GetStatus();
 
@@ -588,10 +677,18 @@ retry_phase2:
   } else {
     goto retry_phase2;
   }
+  std::cerr << " END:LeafNode::Insert(const char *key, uint16_t key_size,
+                            uint64_t payload,
+                            pmwcas::DescriptorPool *pmwcas_pool,
+                            uint32_t split_threshold)"
+            << std::endl;
 }
 
 LeafNode::Uniqueness LeafNode::CheckUnique(const char *key, uint32_t key_size,
                                            pmwcas::EpochManager *epoch) {
+  std::cerr << "CALL:LeafNode::CheckUnique(const char *key, uint32_t key_size,
+                                           pmwcas::EpochManager *epoch)"
+            << std::endl;
   auto metadata = SearchRecordMeta(epoch, key, key_size, nullptr);
   if (metadata.IsVacant()) {
     return IsUnique;
@@ -613,10 +710,16 @@ LeafNode::Uniqueness LeafNode::CheckUnique(const char *key, uint32_t key_size,
     return Duplicate;
   }
   return ReCheck;
+  std::cerr << " END:LeafNode::CheckUnique(const char *key, uint32_t key_size,
+                                           pmwcas::EpochManager *epoch)"
+            << std::endl;
 }
 
 LeafNode::Uniqueness LeafNode::RecheckUnique(const char *key, uint32_t key_size,
                                              uint32_t end_pos) {
+  std::cerr << "CALL:LeafNode::RecheckUnique(const char *key, uint32_t key_size,
+                                             uint32_t end_pos)"
+            << std::endl;
   auto current_status = GetHeader()->GetStatus();
   if (current_status.IsFrozen()) {
     return NodeFrozen;
@@ -667,11 +770,18 @@ LeafNode::Uniqueness LeafNode::RecheckUnique(const char *key, uint32_t key_size,
     }
   }
   return IsUnique;
+  std::cerr << " END:LeafNode::RecheckUnique(const char *key, uint32_t key_size,
+                                             uint32_t end_pos)"
+            << std::endl;
 }
 
 ReturnCode LeafNode::Update(const char *key, uint16_t key_size,
                             uint64_t payload,
                             pmwcas::DescriptorPool *pmwcas_pool) {
+std::cerr << "CALL:LeafNode::Update(const char *key, uint16_t key_size,
+                            uint64_t payload,
+                            pmwcas::DescriptorPool *pmwcas_pool)"
+          << std::endl;
 retry:
   auto old_status = header.GetStatus();
   if (old_status.IsFrozen()) {
@@ -708,6 +818,10 @@ retry:
     goto retry;
   }
   return ReturnCode::Ok();
+  std::cerr << " END:LeafNode::Update(const char *key, uint16_t key_size,
+                            uint64_t payload,
+                            pmwcas::DescriptorPool *pmwcas_pool)"
+          << std::endl;
 }
 
 RecordMetadata BaseNode::SearchRecordMeta(pmwcas::EpochManager *epoch,
@@ -715,6 +829,12 @@ RecordMetadata BaseNode::SearchRecordMeta(pmwcas::EpochManager *epoch,
                                           RecordMetadata **out_metadata_ptr,
                                           uint32_t start_pos, uint32_t end_pos,
                                           bool check_concurrency) {
+  std::cerr << "CALL:BaseNode::SearchRecordMeta(pmwcas::EpochManager *epoch,
+                                          const char *key, uint32_t key_size,
+                                          RecordMetadata **out_metadata_ptr,
+                                          uint32_t start_pos, uint32_t end_pos,
+                                          bool check_concurrency)"
+            << std::endl;
   // Binary search on sorted field
   for (uint32_t i = 0; i < header.sorted_count; i++) {
     RecordMetadata current = GetMetadata(i);
@@ -763,10 +883,19 @@ RecordMetadata BaseNode::SearchRecordMeta(pmwcas::EpochManager *epoch,
     }
   }
   return RecordMetadata{0};
+  std::cerr << " END:BaseNode::SearchRecordMeta(pmwcas::EpochManager *epoch,
+                                          const char *key, uint32_t key_size,
+                                          RecordMetadata **out_metadata_ptr,
+                                          uint32_t start_pos, uint32_t end_pos,
+                                          bool check_concurrency)"
+          << std::endl;
 }
 
 ReturnCode LeafNode::Delete(const char *key, uint16_t key_size,
                             pmwcas::DescriptorPool *pmwcas_pool) {
+  std::cerr << "CALL:LeafNode::Delete(const char *key, uint16_t key_size,
+                            pmwcas::DescriptorPool *pmwcas_pool)"
+          << std::endl;
 retry:
   NodeHeader::StatusWord old_status = header.GetStatus();
   if (old_status.IsFrozen()) {
@@ -797,9 +926,16 @@ retry:
     goto retry;
   }
   return ReturnCode::Ok();
+    std::cerr << " END:LeafNode::Delete(const char *key, uint16_t key_size,
+                            pmwcas::DescriptorPool *pmwcas_pool)"
+          << std::endl;
 }
+
 ReturnCode LeafNode::Read(const char *key, uint16_t key_size, uint64_t *payload,
                           pmwcas::DescriptorPool *pmwcas_pool) {
+  std::cerr << "CALL:LeafNode::Read(const char *key, uint16_t key_size, uint64_t *payload,
+                          pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
   auto meta = SearchRecordMeta(pmwcas_pool->GetEpoch(), key, key_size, nullptr,
                                0, (uint32_t)-1, false);
   if (meta.IsVacant()) {
@@ -811,51 +947,69 @@ ReturnCode LeafNode::Read(const char *key, uint16_t key_size, uint64_t *payload,
                  source_addr + meta.GetPaddedKeyLength())
                  ->GetValueProtected();
   return ReturnCode::Ok();
+    std::cerr << " END:LeafNode::Read(const char *key, uint16_t key_size, uint64_t *payload,
+                          pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
 }
 ReturnCode LeafNode::RangeScanBySize(const char *key1, uint32_t size1,
                                      uint32_t to_scan,
                                      std::list<std::unique_ptr<Record>> *result,
                                      pmwcas::DescriptorPool *pmwcas_pool) {
-  thread_local std::vector<Record *> tmp_result;
-  tmp_result.clear();
+    std::cerr << "CALL:LeafNode::RangeScanBySize(const char *key1, uint32_t size1,
+                                     uint32_t to_scan,
+                                     std::list<std::unique_ptr<Record>> *result,
+                                     pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
+    thread_local std::vector<Record *> tmp_result;
+    tmp_result.clear();
 
-  if (to_scan == 0) {
-    return ReturnCode::Ok();
-  }
+    if (to_scan == 0) {
+      return ReturnCode::Ok();
+    }
 
-  // Enter a new epoch and copy data
-  pmwcas::EpochGuard guard(pmwcas_pool->GetEpoch());
+    // Enter a new epoch and copy data
+    pmwcas::EpochGuard guard(pmwcas_pool->GetEpoch());
 
-  // Have to scan all keys
-  auto count = header.GetStatus().GetRecordCount();
-  for (uint32_t i = 0; i < count; ++i) {
-    auto curr_meta = GetMetadata(i);
-    if (curr_meta.IsVisible()) {
-      int cmp =
-          KeyCompare(key1, size1, GetKey(curr_meta), curr_meta.GetKeyLength());
-      if (cmp <= 0) {
-        tmp_result.emplace_back(Record::New(curr_meta, this));
+    // Have to scan all keys
+    auto count = header.GetStatus().GetRecordCount();
+    for (uint32_t i = 0; i < count; ++i) {
+      auto curr_meta = GetMetadata(i);
+      if (curr_meta.IsVisible()) {
+        int cmp = KeyCompare(key1, size1, GetKey(curr_meta),
+                             curr_meta.GetKeyLength());
+        if (cmp <= 0) {
+          tmp_result.emplace_back(Record::New(curr_meta, this));
+        }
       }
     }
-  }
 
-  std::sort(tmp_result.begin(), tmp_result.end(),
-            [this](Record *a, Record *b) -> bool {
-              auto cmp = KeyCompare(a->GetKey(), a->meta.GetKeyLength(),
-                                    b->GetKey(), b->meta.GetKeyLength());
-              return cmp < 0;
-            });
+    std::sort(tmp_result.begin(), tmp_result.end(),
+              [this](Record *a, Record *b) -> bool {
+                auto cmp = KeyCompare(a->GetKey(), a->meta.GetKeyLength(),
+                                      b->GetKey(), b->meta.GetKeyLength());
+                return cmp < 0;
+              });
 
-  for (auto item : tmp_result) {
-    result->emplace_back(item);
-  }
-  return ReturnCode::Ok();
+    for (auto item : tmp_result) {
+      result->emplace_back(item);
+    }
+    return ReturnCode::Ok();
+      std::cerr << " END:LeafNode::RangeScanBySize(const char *key1, uint32_t size1,
+                                     uint32_t to_scan,
+                                     std::list<std::unique_ptr<Record>> *result,
+                                     pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
 }
 
 ReturnCode LeafNode::RangeScanByKey(const char *key1, uint32_t size1,
                                     const char *key2, uint32_t size2,
                                     std::vector<Record *> *result,
                                     pmwcas::DescriptorPool *pmwcas_pool) {
+  std::cerr << "CALL:LeafNode::RangeScanByKey(const char *key1, uint32_t size1,
+                                    const char *key2, uint32_t size2,
+                                    std::vector<Record *> *result,
+                                    pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
   // entering a new epoch and copying the data
   pmwcas::EpochGuard guard(pmwcas_pool->GetEpoch());
 
@@ -889,9 +1043,16 @@ ReturnCode LeafNode::RangeScanByKey(const char *key1, uint32_t size1,
         return cmp < 0;
       });
   return ReturnCode::Ok();
+  std::cerr << " END:LeafNode::RangeScanByKey(const char *key1, uint32_t size1,
+                                    const char *key2, uint32_t size2,
+                                    std::vector<Record *> *result,
+                                    pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
 }
 
 bool BaseNode::Freeze(pmwcas::DescriptorPool *pmwcas_pool) {
+  std::cerr << "CALL:BaseNode::Freeze(pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
   NodeHeader::StatusWord expected = header.GetStatus();
   if (expected.IsFrozen()) {
     return false;
@@ -900,9 +1061,14 @@ bool BaseNode::Freeze(pmwcas::DescriptorPool *pmwcas_pool) {
   pmwcas::Descriptor *pd = pmwcas_pool->AllocateDescriptor();
   pd->AddEntry(&(&header.status)->word, expected.word, expected.Freeze().word);
   return pd->MwCAS();
+  std::cerr << " END:BaseNode::Freeze(pmwcas::DescriptorPool *pmwcas_pool)"
+            << std::endl;
 }
 
 LeafNode *LeafNode::Consolidate(pmwcas::DescriptorPool *pmwcas_pool) {
+  std::cerr
+      << "CALL:*LeafNode::Consolidate(pmwcas::DescriptorPool *pmwcas_pool)"
+      << std::endl;
   // Freeze the node to prevent new modifications first
   if (!Freeze(pmwcas_pool)) {
     return nullptr;
@@ -923,11 +1089,19 @@ LeafNode *LeafNode::Consolidate(pmwcas::DescriptorPool *pmwcas_pool) {
 #endif
 
   return new_leaf;
+  std::cerr
+      << " END:*LeafNode::Consolidate(pmwcas::DescriptorPool *pmwcas_pool)"
+      << std::endl;
 }
 
 uint32_t LeafNode::SortMetadataByKey(std::vector<RecordMetadata> &vec,
                                      bool visible_only,
                                      pmwcas::EpochManager *epoch) {
+  std::cerr
+      << "CALL:LeafNode::SortMetadataByKey(std::vector<RecordMetadata> &vec,
+                                     bool visible_only,
+                                     pmwcas::EpochManager *epoch)"
+      << std::endl;
   // Node is frozen at this point
   // there should not be any on-going pmwcas
   assert(header.status.IsFrozen());
@@ -954,12 +1128,23 @@ uint32_t LeafNode::SortMetadataByKey(std::vector<RecordMetadata> &vec,
 
   std::sort(vec.begin(), vec.end(), key_cmp);
   return total_size;
+  std::cerr
+      << " END:LeafNode::SortMetadataByKey(std::vector<RecordMetadata> &vec,
+                                     bool visible_only,
+                                     pmwcas::EpochManager *epoch)"
+      << std::endl;
 }
 
 void LeafNode::CopyFrom(LeafNode *node,
                         std::vector<RecordMetadata>::iterator begin_it,
                         std::vector<RecordMetadata>::iterator end_it,
                         pmwcas::EpochManager *epoch) {
+  std::cerr
+      << "CALL:LeafNode::CopyFrom(LeafNode *node,
+                        std::vector<RecordMetadata>::iterator begin_it,
+                        std::vector<RecordMetadata>::iterator end_it,
+                        pmwcas::EpochManager *epoch)"
+      << std::endl;
   // meta_vec is assumed to be in sorted order, insert records one by one
   uint32_t offset = this->header.size;
   uint16_t nrecords = 0;
@@ -989,10 +1174,20 @@ void LeafNode::CopyFrom(LeafNode *node,
 #ifdef PMDK
   Allocator::Get()->PersistPtr(this, this->header.size);
 #endif
+  std::cerr
+      << " END:LeafNode::CopyFrom(LeafNode *node,
+                        std::vector<RecordMetadata>::iterator begin_it,
+                        std::vector<RecordMetadata>::iterator end_it,
+                        pmwcas::EpochManager *epoch)"
+      << std::endl;
 }
 
 void InternalNode::DeleteRecord(uint32_t meta_to_update, uint64_t new_child_ptr,
                                 bztree::InternalNode **new_node) {
+  std::cerr
+      << "CALL:InternalNode::DeleteRecord(uint32_t meta_to_update, uint64_t new_child_ptr,
+                                bztree::InternalNode **new_node)"
+      << std::endl;
   uint32_t meta_to_delete = meta_to_update + 1;
   uint32_t offset = this->header.size -
                     this->record_metadata[meta_to_delete].GetTotalLength() -
@@ -1026,10 +1221,18 @@ void InternalNode::DeleteRecord(uint32_t meta_to_update, uint64_t new_child_ptr,
 #ifdef PMEM
   pmwcas::NVRAM::Flush((*new_node)->header.size, *new_node);
 #endif
+  std::cerr
+      << " END:InternalNode::DeleteRecord(uint32_t meta_to_update, uint64_t new_child_ptr,
+                                bztree::InternalNode **new_node)"
+      << std::endl;
 }
 
 ReturnCode BaseNode::CheckMerge(bztree::Stack *stack, const char *key,
                                 uint32_t key_size, bool backoff) {
+  std::cerr
+      << "CALL:BaseNode::CheckMerge(bztree::Stack *stack, const char *key,
+                                uint32_t key_size, bool backoff)"
+      << std::endl;
   uint32_t merge_threshold = stack->tree->parameters.merge_threshold;
   auto pmwcas_pool = stack->tree->GetPMWCASPool();
   auto epoch = pmwcas_pool->GetEpoch();
@@ -1204,11 +1407,20 @@ ReturnCode BaseNode::CheckMerge(bztree::Stack *stack, const char *key,
     assert(false);
   }
   return rc;
+  std::cerr
+      << " END:BaseNode::CheckMerge(bztree::Stack *stack, const char *key,
+                                uint32_t key_size, bool backoff)"
+      << std::endl;
 }
 
 ReturnCode InternalNode::Update(RecordMetadata meta, InternalNode *old_child,
                                 InternalNode *new_child, pmwcas::Descriptor *pd,
                                 pmwcas::DescriptorPool *pmwcas_pool) {
+  std::cerr
+      << "CALL:InternalNode::Update(RecordMetadata meta, InternalNode *old_child,
+                                InternalNode *new_child, pmwcas::Descriptor *pd,
+                                pmwcas::DescriptorPool *pmwcas_pool)"
+      << std::endl;
   auto status = header.GetStatus();
   if (status.IsFrozen()) {
     return ReturnCode::NodeFrozen();
@@ -1225,10 +1437,19 @@ ReturnCode InternalNode::Update(RecordMetadata meta, InternalNode *old_child,
   } else {
     return ReturnCode::PMWCASFailure();
   }
+  std::cerr
+      << " END:InternalNode::Update(RecordMetadata meta, InternalNode *old_child,
+                                InternalNode *new_child, pmwcas::Descriptor *pd,
+                                pmwcas::DescriptorPool *pmwcas_pool)"
+      << std::endl;
 }
 
 uint32_t InternalNode::GetChildIndex(const char *key, uint16_t key_size,
                                      bool get_le) {
+  std::cerr
+      << "CALL:InternalNode::GetChildIndex(const char *key, uint16_t key_size,
+                                     bool get_le)"
+      << std::endl;
   // Keys in internal nodes are always sorted, visible
   int32_t left = 0, right = header.sorted_count - 1, mid = 0;
   while (true) {
@@ -1259,11 +1480,20 @@ uint32_t InternalNode::GetChildIndex(const char *key, uint16_t key_size,
       }
     }
   }
+  std::cerr
+      << " END:InternalNode::GetChildIndex(const char *key, uint16_t key_size,
+                                     bool get_le)"
+      << std::endl;
 }
 
 bool InternalNode::MergeNodes(InternalNode *left_node, InternalNode *right_node,
                               const char *key, uint32_t key_size,
                               InternalNode **new_node) {
+  std::cerr
+      << "CALL:InternalNode::MergeNodes(InternalNode *left_node, InternalNode *right_node,
+                              const char *key, uint32_t key_size,
+                              InternalNode **new_node)"
+      << std::endl;
   uint32_t padded_keysize = RecordMetadata::PadKeyLength(key_size);
   uint32_t offset = left_node->header.size + right_node->header.size +
                     padded_keysize - sizeof(InternalNode);
@@ -1316,10 +1546,19 @@ bool InternalNode::MergeNodes(InternalNode *left_node, InternalNode *right_node,
   Allocator::Get()->PersistPtr(node, node->header.size);
 #endif
   return true;
+  std::cerr
+      << " END:InternalNode::MergeNodes(InternalNode *left_node, InternalNode *right_node,
+                              const char *key, uint32_t key_size,
+                              InternalNode **new_node)"
+      << std::endl;
 }
 
 bool LeafNode::MergeNodes(LeafNode *left_node, LeafNode *right_node,
                           LeafNode **new_node) {
+  std::cerr
+      << "CALL:LeafNode::MergeNodes(LeafNode *left_node, LeafNode *right_node,
+                          LeafNode **new_node)"
+      << std::endl;
   LeafNode::New(new_node, left_node->header.size);
   thread_local std::vector<RecordMetadata> meta_vec;
   meta_vec.clear();
@@ -1382,6 +1621,10 @@ bool LeafNode::MergeNodes(LeafNode *left_node, LeafNode *right_node,
   Allocator::Get()->PersistPtr(node, node->header.size);
 #endif
   return true;
+  std::cerr
+      << " END:LeafNode::MergeNodes(LeafNode *left_node, LeafNode *right_node,
+                          LeafNode **new_node)"
+      << std::endl;
 }
 
 bool LeafNode::PrepareForSplit(Stack &stack, uint32_t split_threshold,
@@ -1389,6 +1632,13 @@ bool LeafNode::PrepareForSplit(Stack &stack, uint32_t split_threshold,
                                pmwcas::DescriptorPool *pmwcas_pool,
                                LeafNode **left, LeafNode **right,
                                InternalNode **new_parent, bool backoff) {
+  std::cerr
+      << "CALL:LeafNode::PrepareForSplit(Stack &stack, uint32_t split_threshold,
+                               pmwcas::Descriptor *pd,
+                               pmwcas::DescriptorPool *pmwcas_pool,
+                               LeafNode **left, LeafNode **right,
+                               InternalNode **new_parent, bool backoff)"
+      << std::endl;
   ALWAYS_ASSERT(header.GetStatus().GetRecordCount() > 2);
 
   // Prepare new nodes: a parent node, a left leaf and a right leaf
@@ -1460,11 +1710,23 @@ bool LeafNode::PrepareForSplit(Stack &stack, uint32_t split_threshold,
         reinterpret_cast<uint64_t>(*left), reinterpret_cast<uint64_t>(*right),
         new_parent, pd, pmwcas_pool, backoff);
   }
+  std::cerr
+      << " END:LeafNode::PrepareForSplit(Stack &stack, uint32_t split_threshold,
+                               pmwcas::Descriptor *pd,
+                               pmwcas::DescriptorPool *pmwcas_pool,
+                               LeafNode **left, LeafNode **right,
+                               InternalNode **new_parent, bool backoff)"
+      << std::endl;
 }
 
 BaseNode *BzTree::TraverseToNode(bztree::Stack *stack, const char *key,
                                  uint16_t key_size, bztree::BaseNode *stop_at,
                                  bool le_child) {
+  std::cerr
+      << "CALL:*BzTree::TraverseToNode(bztree::Stack *stack, const char *key,
+                                 uint16_t key_size, bztree::BaseNode *stop_at,
+                                 bool le_child)"
+      << std::endl;
   BaseNode *node = GetRootNodeSafe();
   if (stack) {
     stack->SetRoot(node);
@@ -1482,10 +1744,19 @@ BaseNode *BzTree::TraverseToNode(bztree::Stack *stack, const char *key,
     }
   }
   return node;
+  std::cerr
+      << " END:*BzTree::TraverseToNode(bztree::Stack *stack, const char *key,
+                                 uint16_t key_size, bztree::BaseNode *stop_at,
+                                 bool le_child)"
+      << std::endl;
 }
 
 LeafNode *BzTree::TraverseToLeaf(Stack *stack, const char *key,
                                  uint16_t key_size, bool le_child) {
+  std::cerr
+      << "CALL:*BzTree::TraverseToLeaf(Stack *stack, const char *key,
+                                 uint16_t key_size, bool le_child)"
+      << std::endl;
   static const uint32_t kCacheLineSize = 64;
   BaseNode *node = GetRootNodeSafe();
   __builtin_prefetch((const void *)(root), 0, 3);
@@ -1514,10 +1785,18 @@ LeafNode *BzTree::TraverseToLeaf(Stack *stack, const char *key,
     __builtin_prefetch((const void *)((char *)node + i * kCacheLineSize), 0, 3);
   }
   return reinterpret_cast<LeafNode *>(node);
+  std::cerr
+      << " END:*BzTree::TraverseToLeaf(Stack *stack, const char *key,
+                                 uint16_t key_size, bool le_child)"
+      << std::endl;
 }
 
 ReturnCode BzTree::Insert(const char *key, uint16_t key_size,
                           uint64_t payload) {
+  std::cerr
+      << "CALL:BzTree::Insert(const char *key, uint16_t key_size,
+                          uint64_t payload)"
+      << std::endl;
   thread_local Stack stack;
   stack.tree = this;
   uint64_t freeze_retry = 0;
@@ -1643,19 +1922,34 @@ ReturnCode BzTree::Insert(const char *key, uint16_t key_size,
 #endif
     }
   }
+  std::cerr
+      << " END:BzTree::Insert(const char *key, uint16_t key_size,
+                          uint64_t payload)"
+      << std::endl;
 }
 
 bool BzTree::ChangeRoot(uint64_t expected_root_addr, uint64_t new_root_addr,
                         pmwcas::Descriptor *pd) {
+  std::cerr
+      << "CALL:BzTree::ChangeRoot(uint64_t expected_root_addr, uint64_t new_root_addr,
+                        pmwcas::Descriptor *pd)"
+      << std::endl;
   // Memory policy here is "Never" because the memory was allocated in
   // PrepareForInsert/BzTree::Insert which uses a descriptor that specifies
   // policy RecycleOnRecovery
   pd->AddEntry(reinterpret_cast<uint64_t *>(&root), expected_root_addr,
                new_root_addr, pmwcas::Descriptor::kRecycleNever);
   return pd->MwCAS();
+  std::cerr
+      << " END:BzTree::ChangeRoot(uint64_t expected_root_addr, uint64_t new_root_addr,
+                        pmwcas::Descriptor *pd)"
+      << std::endl;
 }
 
 ReturnCode BzTree::Read(const char *key, uint16_t key_size, uint64_t *payload) {
+  std::cerr << "CALL:BzTree::Read(const char *key, uint16_t key_size, uint64_t "
+               "*payload)"
+            << std::endl;
   pmwcas::EpochGuard guard(GetPMWCASPool()->GetEpoch());
 
   LeafNode *node = TraverseToLeaf(nullptr, key, key_size);
@@ -1668,10 +1962,16 @@ ReturnCode BzTree::Read(const char *key, uint16_t key_size, uint64_t *payload) {
     *payload = tmp_payload;
   }
   return rc;
+  std::cerr << " END:BzTree::Read(const char *key, uint16_t key_size, uint64_t "
+               "*payload)"
+            << std::endl;
 }
 
 ReturnCode BzTree::Update(const char *key, uint16_t key_size,
                           uint64_t payload) {
+  std::cerr << "CALL:BzTree::Update(const char *key, uint16_t key_size,
+                          uint64_t payload)"
+            << std::endl;
   ReturnCode rc;
   pmwcas::EpochGuard guard(GetPMWCASPool()->GetEpoch());
   do {
@@ -1682,10 +1982,16 @@ ReturnCode BzTree::Update(const char *key, uint16_t key_size,
     rc = node->Update(key, key_size, payload, GetPMWCASPool());
   } while (rc.IsPMWCASFailure());
   return rc;
+  std::cerr << " END:BzTree::Update(const char *key, uint16_t key_size,
+                          uint64_t payload)"
+            << std::endl;
 }
 
 ReturnCode BzTree::Upsert(const char *key, uint16_t key_size,
                           uint64_t payload) {
+  std::cerr << "CALL:BzTree::Upsert(const char *key, uint16_t key_size,
+                          uint64_t payload)"
+            << std::endl;
   pmwcas::EpochGuard guard(GetPMWCASPool()->GetEpoch());
 
   LeafNode *node = TraverseToLeaf(nullptr, key, key_size, GetPMWCASPool());
@@ -1706,9 +2012,14 @@ ReturnCode BzTree::Upsert(const char *key, uint16_t key_size,
   } else {
     return rc;
   }
+  std::cerr << " END:BzTree::Upsert(const char *key, uint16_t key_size,
+                          uint64_t payload)"
+            << std::endl;
 }
 
 ReturnCode BzTree::Delete(const char *key, uint16_t key_size) {
+  std::cerr << "CALL:BzTree::Delete(const char *key, uint16_t key_size)"
+            << std::endl;
   thread_local Stack stack;
   stack.tree = this;
   ReturnCode rc;
@@ -1745,9 +2056,12 @@ ReturnCode BzTree::Delete(const char *key, uint16_t key_size) {
   } while (rc.IsNodeFrozen() || rc.IsPMWCASFailure());
   ALWAYS_ASSERT(false);
   return rc;  // Just to silence the compiler
+  std::cerr << " END:BzTree::Delete(const char *key, uint16_t key_size)"
+            << std::endl;
 }
 
 void BzTree::Dump() {
+  std::cerr << "CALL:BzTree::Dump()" << std::endl;
   std::cout << "-----------------------------" << std::endl;
   std::cout << "Dumping tree with root node: " << root << std::endl;
   // Traverse each level and dump each node
@@ -1759,6 +2073,7 @@ void BzTree::Dump() {
     (reinterpret_cast<InternalNode *>(real_root))
         ->Dump(GetPMWCASPool()->GetEpoch(), true /* inlcude children */);
   }
+  std::cerr << " END:BzTree::Dump()" << std::endl;
 }
 
 }  // namespace bztree
