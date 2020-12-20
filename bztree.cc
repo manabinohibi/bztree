@@ -344,8 +344,7 @@ bool InternalNode::PrepareForSplit(
     pmwcas::DescriptorPool *pool, bool backoff) {
   std::cerr << "CALL:InternalNode::PrepareForSplit(
     Stack &stack, uint32_t split_threshold, const char *key, uint32_t key_size,
-    uint64_t left_child_addr,   // [key]'s left child pointer
-    uint64_t right_child_addr,  // [key]'s right child pointer
+    uint64_t left_child_addr, uint64_t right_child_addr,
     InternalNode **new_node, pmwcas::Descriptor *pd,
     pmwcas::DescriptorPool *pool, bool backoff)"
             << std::endl;
@@ -440,8 +439,7 @@ bool InternalNode::PrepareForSplit(
                                  (uint64_t)*ptr_r, new_node, pd, pool, backoff);
   std::cerr << " END:InternalNode::PrepareForSplit(
     Stack &stack, uint32_t split_threshold, const char *key, uint32_t key_size,
-    uint64_t left_child_addr,   // [key]'s left child pointer
-    uint64_t right_child_addr,  // [key]'s right child pointer
+    uint64_t left_child_addr, uint64_t right_child_addr,
     InternalNode **new_node, pmwcas::Descriptor *pd,
     pmwcas::DescriptorPool *pool, bool backoff)"
             << std::endl;
